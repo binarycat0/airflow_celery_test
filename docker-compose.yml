@@ -1,0 +1,85 @@
+version: '3'
+services:
+  web:
+    build: .
+    ports:
+      - '8080:8080'
+    environment:
+      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=${SQL_ALCHEMY_CONN}
+      - AIRFLOW__WEBSERVER__DAG_ORIENTATION=${DAG_ORIENTATION}
+    volumes:
+      - '${PWD}/src:/airflow'
+      - '${PWD}/dockerdata/logs:/logs'
+    links:
+      - db
+      - redis
+      - scheduler
+      - flower
+      - worker
+    entrypoint:
+      - /airflow/airflow_web.sh
+    restart: "always"
+
+  scheduler:
+    build: .
+    environment:
+      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=${SQL_ALCHEMY_CONN}
+    volumes:
+      - '${PWD}/src:/airflow'
+      - '${PWD}/dockerdata/logs:/logs'
+    links:
+      - db
+      - redis
+      - worker
+    entrypoint:
+      - /airflow/airflow_scheduler.sh
+    restart: "always"
+
+  worker:
+    build: .
+    environment:
+      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=${SQL_ALCHEMY_CONN}
+      - C_FORCE_ROOT=True
+    volumes:
+      - '${PWD}/src:/airflow'
+      - '${PWD}/dockerdata/logs:/logs'
+    links:
+      - db
+      - redis
+    entrypoint:
+      - /airflow/airflow_worker.sh
+    restart: "always"
+
+  flower:
+    build: .
+    environment:
+      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=${SQL_ALCHEMY_CONN}
+    volumes:
+      - '${PWD}/src:/airflow'
+      - '${PWD}/dockerdata/logs:/logs'
+    ports:
+      - '8081:8081'
+    links:
+      - db
+      - redis
+    entrypoint:
+      - /airflow/airflow_flower.sh
+    restart: "always"
+
+  db:
+    image: 'postgres:9.6'
+    hostname: db
+    restart: always
+    volumes:
+      - '${PWD}/dockerdata/pgdata:/var/lib/postgresql/data'
+    environment:
+      - POSTGRES_USER=airflow
+      - POSTGRES_PASSWORD=airflow
+      - POSTGRES_DB=airflow
+
+  redis:
+    image: 'redis:3.2'
+    hostname: redis
+    volumes:
+      - '${PWD}/dockerdata/redis:/data'
+    restart: "always"
