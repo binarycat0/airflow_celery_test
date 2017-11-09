@@ -107,3 +107,4 @@ ENV/
 *.log
 *.sqlite
 /dockerdata
+.pid
