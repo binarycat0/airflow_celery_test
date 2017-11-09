@@ -1,3 +1,3 @@
 #!/bin/bash
 
-airflow scheduler --stdout $SCHEDULER_DAEMON_LOGFILE --stderr $SCHEDULER_DAEMON_LOGFILE
+airflow scheduler --stdout $SCHEDULER_DAEMON_LOGFILE --stderr $SCHEDULER_DAEMON_LOGFILE -l $SCHEDULER_DAEMON_LOGFILE -D
